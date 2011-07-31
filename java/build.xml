@@ -1,0 +1,167 @@
+<project name="Machine-Trans" default="jar">
+	<defaultexcludes add="**/CVS"/>
+
+	<property name="build.name" value="hocrtopdf" />
+	<property name="build.ver" value="0.0.1"/>
+
+	<property name="dict.dir" value="."/>
+	<property name="tmp.dir"   value="tmp" />
+	<property name="build.dir" value="${tmp.dir}/build"/>
+	<property name="build.test.dir" value="${tmp.dir}/test"/>
+	<property name="dist.dir" value="dist"/>
+
+
+	<property name="jarfile" value="${tmp.dir}/bin/${build.name}-${build.ver}.jar"/>
+
+	<property name="srczip"	 value="${dist.dir}/${build.name}-${build.ver}-src.zip"/>
+	<property name="binzip"	 value="${dist.dir}/${build.name}-${build.ver}.zip"/>
+
+	
+	<path id="compile.classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<fileset dir="lib" id="runtime.dependencies">
+		<include name="**/*.jar"/>
+		<exclude name="junit*.jar"/>
+	</fileset>
+
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${build.test.dir}" />
+		<mkdir dir="${dist.dir}"/>
+	</target>
+		
+	<target name="clean">
+		<delete dir="${build.dir}" failonerror="false"/>
+		<delete dir="${dist.dir}" failonerror="false"/>
+		<delete dir="${tmp.dir}" failonerror="false"/>
+	</target>
+	
+	
+	
+	<target name="compile" depends="init">
+		<javac classpath="${classpath}"
+			destdir="${build.dir}" encoding="UTF-8"
+			source="1.5" target="1.5">
+			<classpath refid="compile.classpath" />
+			<include name="**/*.java" />
+			<src location="src"/>
+		</javac>
+
+		<!-- Copy additional resources to the build folder. -->
+		<copy todir="${build.dir}">
+			<fileset dir="src">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	
+	
+	
+	<target name="compile.test" depends="init,compile">
+		<javac classpath="${classpath}"
+			destdir="${build.test.dir}" encoding="UTF-8">
+			<classpath refid="compile.classpath" />
+			<classpath location="${build.dir}" />
+
+			<src location="src-test" />
+		</javac>
+
+		<!-- Copy additional resources to the build folder. -->
+		<copy todir="${build.test.dir}">
+			<fileset dir="src-test">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	
+	
+	
+	<target name="test" depends="compile, compile.test">
+		<mkdir dir="${tmp.dir}/tests" />
+		<junit printsummary="yes" haltonfailure="yes">
+		  <classpath refid="compile.classpath" />
+		  <classpath location="${build.dir}" />
+		  <classpath location="${build.test.dir}" />
+		
+		  <formatter type="plain"/>
+		
+		  <batchtest todir="${tmp.dir}/tests">
+			<fileset dir="src-test">
+			  <include name="**/*Test.java"/>
+			</fileset>
+		  </batchtest>
+		</junit>
+	</target>
+
+	
+	
+	<target name="javadoc" depends="init">
+		<javadoc sourcepath="src" packagenames="plmilkowski.*" destdir="${tmp.dir}/javadoc">
+			<classpath refid="compile.classpath" />
+		</javadoc>
+	</target>
+
+	
+
+	<target name="jar" depends="clean, compile">
+		<mkdir dir="${tmp.dir}/bin" />
+
+		<pathconvert property="manifest.classpath" pathsep=" ">
+			<flattenmapper/>
+			<path>
+				<fileset refid="runtime.dependencies" />
+			</path>		
+		</pathconvert>
+		<jar jarfile="${jarfile}">
+			<fileset dir="${build.dir}" />
+			<fileset dir="${dict.dir}">
+					<include name="**/*.dict" />
+					<include name="**/*.info" />
+			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="pl.marcinmilkowski.hocrtopdf.Main" />
+				<attribute name="Class-Path" value="${manifest.classpath}" />
+			</manifest>
+		</jar>
+	</target>
+
+	
+
+	<!-- target name="build" depends="jar">
+		<copy todir="${tmp.dir}/bin">
+			<fileset refid="runtime.dependencies" />
+			<fileset dir=".">
+				<include name="LICENSE*.txt" />
+				<include name="README.txt" />
+				<include name="version.txt" />
+			</fileset>
+		</copy>
+	</target -->
+	
+
+	<target name="dist" depends="clean,test,javadoc">
+		<!-- Package source distribution -->
+		<fileset dir="." id="srcdistfiles">
+			<exclude name="tmp/**"/>
+			<exclude name="dist/**"/>
+			<exclude name=".settings/**"/>
+			<exclude name="${srczip}" />
+		</fileset>
+
+		<zip destfile="${srczip}">
+			<fileset refid="srcdistfiles" />
+			<zipfileset prefix="doc/api" dir="${tmp.dir}/javadoc" />
+		</zip>
+		<zip destfile="${binzip}">
+			<fileset dir="${tmp.dir}/bin" />
+			<zipfileset prefix="api" dir="${tmp.dir}/javadoc" />
+		</zip>
+	</target>
+	
+</project>
