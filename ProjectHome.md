@@ -1,0 +1,1 @@
+Microsoft Office contains a decent OCR engine, yet it does not create PDF files with a text layer on it. This project contains a script that takes a tif file and converts it into HOCR format (HTML + OCR). This can be then processed with a simple Java program to get a PDF file. Batch scripts that do that are included.
