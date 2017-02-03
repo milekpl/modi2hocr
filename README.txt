@@ -20,6 +20,7 @@ Chinese Simplified = 2052
 Czech = 5
 Danish = 6
 Dutch = 19
+English = 9
 Finnish = 11
 French = 12
 German = 7
